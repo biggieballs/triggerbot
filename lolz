@@ -1,6 +1,7 @@
 local Players = game:GetService("Players")
 local lp = Players.LocalPlayer or Players:GetPropertyChangedSignal("LocalPlayer"):Wait() and Players.LocalPlayer
 local mouse = lp:GetMouse()
+local UserInputService = game:GetService("UserInputService")
 
 local function gettarget(instance)
    for i,v in next, Players:GetPlayers() do
@@ -10,16 +11,34 @@ local function gettarget(instance)
    end
 end
 
-local con = game:GetService("RunService").Heartbeat:Connect(function()
-   if gettarget(mouse.Target) then
+local isRightClicking = false
+
+local function onInputBegan(input, gameProcessed)
+   if input.UserInputType == Enum.UserInputType.MouseButton2 then
+      isRightClicking = true
+   end
+end
+
+local function onInputEnded(input, gameProcessed)
+   if input.UserInputType == Enum.UserInputType.MouseButton2 then
+      isRightClicking = false
+   end
+end
+
+local con = UserInputService.InputBegan:Connect(onInputBegan)
+local con2 = UserInputService.InputEnded:Connect(onInputEnded)
+
+getgenv().disable = function()
+   getgenv().disable = nil
+   warn("Disconnecting:",con,con2)
+   con:Disconnect()
+   con2:Disconnect()
+end
+
+while wait() do
+   if isRightClicking and gettarget(mouse.Target) then
       mouse1press()
       task.wait()
       mouse1release()
    end
-end)
-
-getgenv().disable = function()
-   getgenv().disable = nil
-   warn("Disconnecting:",con)
-   con:Disconnect()
 end
